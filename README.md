@@ -5,7 +5,7 @@ This repository contains a hybrid Machine Learning / Molecular Mechanics (ML/MM)
 
 Traditional empirical force fields (like CHARMM) struggle to correctly represent the quantum mechanical nuances of halogens (e.g., the $\sigma$-hole effect), often requiring arbitrary virtual sites and parameter tweaking. To solve this, we replaced the classical representation of the ligand with a **Machine Learning Force Field (MLFF)** trained on Density Functional Theory (DFT) data, while keeping the rest of the massive biological system (lipids + water) in the classical MM regime.
 
-## What the am I using? (The Software Stack)
+## What am I using? (The Software Stack)
 Bridging Quantum Mechanics, Machine Learning, and Classical MD in a single simulation is notoriously complex. Here is the stack that makes it possible:
 
 * **OpenMM (v8.1+)**: The core Molecular Dynamics engine, chosen for its high customizability and excellent GPU acceleration.
