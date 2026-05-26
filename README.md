@@ -1,4 +1,3 @@
-# Mixed ML/MM Molecular Dynamics Pipeline for Halogen Bonding
 # Development of a Membrane-Oriented MLFF for Halogen Bonding using SPICE, ORCA and MACE
 
 ## Overview
