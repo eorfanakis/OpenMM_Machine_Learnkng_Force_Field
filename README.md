@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository documents a workflow I developed for training a machine learning force field (MLFF) with enhanced representation of halogen-bonding interactions in drug-like molecules.
+This repository documents a workflow developed for training a machine learning force field (MLFF) with enhanced representation of halogen-bonding interactions in drug-like molecules.
 
 The project started from a problem that is particularly relevant to medicinal chemistry and membrane simulations. Many biologically active molecules contain chlorine, bromine or iodine. These atoms can form directional interactions with electron-rich atoms through the so-called σ-hole. In a conventional atom-centred representation, this anisotropic interaction is not always straightforward to describe, especially when the geometry of the interaction matters.
 
@@ -27,7 +27,7 @@ MACE training
 Specialised MLFF for future membrane-oriented testing
 ```
 
-The intention is not to impose an empirical correction for halogens, but to expose the machine learning model to quantum-mechanical reference configurations in which halogen-bond geometry is explicitly sampled.
+The intention is not to impose an empirical correction for halogens, but to expose the machine learning model to quantum-mechanical configurations in which halogen-bond geometry is explicitly sampled.
 
 This repository currently represents a model-development workflow. The resulting model is suitable for further validation and testing, but should not yet be interpreted as a quantitatively validated force field for membrane permeation or permeability prediction.
 
@@ -111,9 +111,9 @@ The source file is:
 SPICE-2.0.1.hdf5
 ```
 
-This dataset contains molecular conformations together with DFT reference energies and gradients. Rather than using all structures as a single undifferentiated collection, the script reorganises the data according to the chemistry relevant to this project.
+This dataset contains molecular conformations together with DFT reference energies and gradients. Rather than using all structures as a single collection, the script organises the data according to the chemistry relevant to this project.
 
-In particular, structures containing chlorine, bromine or iodine are separated from more general molecular structures. This allows the later training strategy to retain broad chemical coverage while explicitly identifying halogen-containing configurations.
+In particular, molecules that contain chlorine, bromine or iodine are separated from more general molecular structures. This allows the later training strategy to retain broad chemical coverage while explicitly identifying halogen-containing configurations.
 
 ### Script
 
