@@ -117,9 +117,6 @@ In particular, structures containing chlorine, bromine or iodine are separated f
 
 ### Script
 
-Run from the project root directory:
-
-```bash
 python 01_spice_subsets/step1_balanced_spice.py
 ```
 
