@@ -10,7 +10,7 @@ My long-term goal is to investigate halogenated ligands in lipid membrane enviro
 
 The dataset development strategy combines two complementary components:
 
-1. publicly available DFT-level molecular data, providing broad chemical coverage;
+1. publicly available DFT-level molecular data, providing broad chemical coverage
 2. targeted ORCA calculations on simple σ-hole / halogen-bond model systems, providing additional reference information for the directional interaction of interest.
 
 The overall workflow is:
@@ -45,9 +45,9 @@ SPICE is used as the publicly available source of molecular conformations with D
 
 Python scripts are used throughout the workflow for data preparation and automation. ASE, the Atomic Simulation Environment, is used to:
 
-- represent molecular structures;
-- read and write molecular configurations;
-- convert configurations to `.extxyz` format;
+- represent molecular structures
+- read and write molecular configurations
+- convert configurations to `.extxyz` format
 - interface generated geometries with ORCA calculations.
 
 ### ORCA
@@ -288,7 +288,7 @@ with the following ORCA settings:
 
 For each geometry, the workflow calculates:
 
-- a DFT reference energy;
+- a DFT reference energy
 - the corresponding atomic forces.
 
 ### Output file
@@ -449,9 +449,9 @@ forces  → REF_forces
 
 It also:
 
-- removes inconsistent isolated atom records from earlier dataset versions;
-- clears stored ASE calculator objects;
-- adds missing isolated atom references for `B`, `F`, `Si` and `S`;
+- removes inconsistent isolated atom records from earlier dataset versions
+- clears stored ASE calculator objects
+- adds missing isolated atom references for `B`, `F`, `Si` and `S`
 - generates corrected training and validation datasets.
 
 The corrected output files are:
@@ -473,11 +473,11 @@ python step5_ultimate_merge.py
 
 This script directly prepares the MACE-compatible datasets by:
 
-- reading the ORCA σ-hole reference configurations;
-- reading the SPICE halogen and general subsets;
-- normalising energies and forces to `REF_energy` and `REF_forces`;
-- adding isolated atom references;
-- applying the intended ORCA σ-hole oversampling in the training set;
+- reading the ORCA σ-hole reference configurations
+- reading the SPICE halogen and general subsets
+- normalising energies and forces to `REF_energy` and `REF_forces`
+- adding isolated atom references
+- applying the intended ORCA σ-hole oversampling in the training set
 - writing the final training and validation files.
 
 ### Final output files
@@ -676,13 +676,13 @@ Large MACE checkpoints and deployed model files
 
 At its present stage, the project has achieved the following:
 
-- preprocessing of publicly available DFT molecular data;
-- separation of halogen-containing and general molecular configurations;
-- generation of targeted σ-hole scan geometries;
-- ORCA calculations for halogen-bond reference energies and forces;
-- isolated atom reference calculations;
-- assembly of normalised MACE training and validation datasets;
-- GPU-accelerated training of a first MACE MLFF;
+- preprocessing of publicly available DFT molecular data
+- separation of halogen-containing and general molecular configurations
+- generation of targeted σ-hole scan geometries
+- ORCA calculations for halogen-bond reference energies and forces
+- isolated atom reference calculations
+- assembly of normalised MACE training and validation datasets
+- GPU-accelerated training of a first MACE MLFF
 - production of trained model files and validation-error curves.
 
 The current model is best described as:
@@ -700,10 +700,10 @@ The most important next stage is independent validation.
 
 Planned validation tasks include:
 
-1. evaluating the model on new σ-hole geometries not present in the training dataset;
-2. comparing predicted energies and forces against additional ORCA calculations for halogenated drug-like molecules;
-3. examining whether the model remains stable during molecular dynamics tests;
-4. testing the model in more realistic membrane-oriented systems;
+1. evaluating the model on new σ-hole geometries not present in the training dataset
+2. comparing predicted energies and forces against additional ORCA calculations for halogenated drug-like molecules
+3. examining whether the model remains stable during molecular dynamics tests
+4. testing the model in more realistic membrane-oriented systems
 5. determining whether targeted halogen-bond enrichment improves the treatment of ligand interactions in lipid environments.
 
 ---
