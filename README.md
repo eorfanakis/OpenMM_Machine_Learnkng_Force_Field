@@ -589,7 +589,7 @@ Force RMSE  = 56.90 meV/Å
 
 These values indicate that the model learned a stable representation of a substantial part of the training and validation reference data.
 
-![MACE validation energy and force error curves](<img width="2460" height="3095" alt="mace_validation_energy_force_combined" src="https://github.com/user-attachments/assets/5ff4bd46-e725-4018-84d4-8f833a27a9cf" />s/mace_validation_energy_force_combined.png)
+<img width="2460" height="3095" alt="mace_validation_energy_force_combined" src="https://github.com/user-attachments/assets/5ff4bd46-e725-4018-84d4-8f833a27a9cf" />
 
 **Figure 1.** Validation errors during MACE training. The upper panel shows the root mean square error for energies per atom, and the lower panel shows the root mean square error for atomic forces. Both quantities decrease substantially during the initial training period and remain in a lower-error range at later epochs.
 
