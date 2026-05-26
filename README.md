@@ -1,20 +1,23 @@
 # Mixed ML/MM Molecular Dynamics Pipeline for Halogen Bonding
+# Development of a Membrane-Oriented MLFF for Halogen Bonding using SPICE, ORCA and MACE
+
 ## Overview
 
-This repository contains the workflow I developed for training a machine learning force field (MLFF) with increased sensitivity to halogen-bonding interactions in drug-like molecules.
+This repository documents a workflow I developed for training a machine learning force field (MLFF) with enhanced representation of halogen-bonding interactions in drug-like molecules.
 
-The project was motivated by a practical problem in molecular simulation. Many pharmaceutically relevant compounds contain chlorine, bromine or iodine, and these atoms can participate in directional interactions through the so-called σ-hole. This is especially relevant when considering the behaviour of halogenated ligands in polar biological environments, including lipid membrane interfaces.
+The project started from a problem that is particularly relevant to medicinal chemistry and membrane simulations. Many biologically active molecules contain chlorine, bromine or iodine. These atoms can form directional interactions with electron-rich atoms through the so-called σ-hole. In a conventional atom-centred representation, this anisotropic interaction is not always straightforward to describe, especially when the geometry of the interaction matters.
 
-The long-term aim of this work is to develop a model suitable for testing in membrane-oriented simulations of halogenated drug molecules. At the present stage, the model has not been trained directly on complete lipid bilayer configurations. Instead, it was built from a combination of:
+My long-term goal is to investigate halogenated ligands in lipid membrane environments. For that reason, the MLFF was designed as a membrane-oriented model: not because it has already been trained on complete membrane configurations, but because it was constructed with the interactions likely to matter in those applications in mind.
 
-1. publicly available DFT-level molecular data, used to provide broad chemical coverage;
-2. targeted quantum-mechanical calculations designed specifically to sample σ-hole and halogen-bond geometries;
-3. a MACE-based training workflow for learning energies and atomic forces.
+The dataset development strategy combines two complementary components:
 
-The central idea is simple:
+1. publicly available DFT-level molecular data, providing broad chemical coverage;
+2. targeted ORCA calculations on simple σ-hole / halogen-bond model systems, providing additional reference information for the directional interaction of interest.
+
+The overall workflow is:
 
 ```text
-Public DFT data
+Public DFT molecular data
         +
 Targeted ORCA calculations for halogen bonding
         ↓
@@ -22,346 +25,699 @@ Chemically enriched training dataset
         ↓
 MACE training
         ↓
-Specialized MLFF for future membrane-oriented applications
+Specialised MLFF for future membrane-oriented testing
+```
 
-Rather than introducing an explicit empirical σ-hole correction, the aim is to expose the model to quantum-mechanical reference data that contain the directional interaction of interest. The resulting MLFF can then be assessed in future studies involving halogenated ligands and lipid environments.
+The intention is not to impose an empirical correction for halogens, but to expose the machine learning model to quantum-mechanical reference configurations in which halogen-bond geometry is explicitly sampled.
 
-What am I using? (The Software Stack)
+This repository currently represents a model-development workflow. The resulting model is suitable for further validation and testing, but should not yet be interpreted as a quantitatively validated force field for membrane permeation or permeability prediction.
 
-The workflow combines quantum chemistry, molecular dataset preparation and equivariant machine learning.
+---
 
-SPICE 2.0.1
-A publicly available DFT-level molecular dataset used as the broad chemical foundation of the training data. It provides molecular conformations together with reference energies and gradients.
-Python and ASE (Atomic Simulation Environment)
-Used for reading and writing molecular structures, converting units, generating scan geometries and assembling .extxyz datasets.
-ORCA
-Used to calculate additional DFT energies and forces for purpose-built σ-hole / halogen-bond geometries. The targeted calculations were performed at the wB97X-D4 def2-TZVP TightSCF level of theory.
-MACE (Message Passing Atomic Cluster Expansion)
-The machine learning interatomic potential used to train the MLFF. MACE learns energies and atomic forces from quantum-mechanical reference configurations while preserving the geometric relationships required for molecular systems.
-PyTorch with CUDA acceleration
-Used as the computational backend for MACE training. The training reported here was performed with MACE v0.3.15 on a CUDA 12.1 GPU environment.
-Project Workflow
+## What am I using? (The Software Stack)
 
-The workflow is organised into five main data-preparation stages followed by MACE training.
+This workflow combines quantum chemistry, molecular dataset preparation and equivariant machine learning.
 
-SPICE preprocessing
+### SPICE 2.0.1
+
+SPICE is used as the publicly available source of molecular conformations with DFT-level reference energies and gradients. It provides the broad chemical background required for developing a transferable molecular potential.
+
+### Python and ASE
+
+Python scripts are used throughout the workflow for data preparation and automation. ASE, the Atomic Simulation Environment, is used to:
+
+- represent molecular structures;
+- read and write molecular configurations;
+- convert configurations to `.extxyz` format;
+- interface generated geometries with ORCA calculations.
+
+### ORCA
+
+ORCA is used to produce additional quantum-mechanical reference data for specifically designed halogen-bond geometries. These calculations provide energies and atomic forces for σ-hole scans that complement the broader public dataset.
+
+The custom ORCA calculations use:
+
+```text
+wB97X-D4 def2-TZVP TightSCF
+```
+
+### MACE
+
+MACE stands for **Message Passing Atomic Cluster Expansion**. It is an equivariant machine learning interatomic potential framework that learns molecular energies and atomic forces from quantum-mechanical reference configurations.
+
+In this project, MACE is trained on a dataset that combines general molecular structures with targeted halogen-bond configurations, so that the model receives additional information about the directional interaction that motivated the workflow.
+
+### PyTorch and CUDA
+
+MACE training was performed through a GPU-accelerated PyTorch environment.
+
+The training run documented here used:
+
+```text
+MACE version:  0.3.15
+CUDA version:  12.1
+GPU device:    0
+```
+
+---
+
+## Workflow Summary
+
+The project is organised into sequential stages:
+
+```text
+Step 1: Public DFT data preprocessing
         ↓
-Targeted σ-hole geometry generation
+Step 2: Targeted σ-hole geometry generation
         ↓
-ORCA reference calculations
+Step 3: ORCA reference energy and force calculations
         ↓
-Isolated atom reference calculations
+Step 4: Isolated atom reference calculations
         ↓
-Dataset assembly and normalisation
+Step 5: Dataset assembly and normalisation
         ↓
-MACE training
-Step 1 — Preparing Publicly Available DFT Data
-Purpose
+Step 6: MACE training and validation monitoring
+```
 
-The first stage uses an existing quantum-chemical dataset to provide a broad molecular background for the MLFF.
+---
 
-The SPICE-2.0.1.hdf5 file contains molecular conformations together with DFT total energies and gradients. Since the present project focuses on halogenated molecules, these data are processed and divided into two chemically meaningful groups:
+## Step 1 — Preparing Publicly Available DFT Data
 
-configurations containing chlorine, bromine or iodine;
-general molecular configurations without these halogens.
+### Purpose
 
-This separation does not discard the general chemistry present in the public dataset. Instead, it allows halogen-containing configurations to be handled explicitly during later dataset assembly.
+The first step establishes the broad chemical foundation of the MLFF using existing quantum-mechanical data.
 
-Script
+The source file is:
+
+```text
+SPICE-2.0.1.hdf5
+```
+
+This dataset contains molecular conformations together with DFT reference energies and gradients. Rather than using all structures as a single undifferentiated collection, the script reorganises the data according to the chemistry relevant to this project.
+
+In particular, structures containing chlorine, bromine or iodine are separated from more general molecular structures. This allows the later training strategy to retain broad chemical coverage while explicitly identifying halogen-containing configurations.
+
+### Script
+
+Run from the project root directory:
+
+```bash
 python 01_spice_subsets/step1_balanced_spice.py
-What the script does
+```
 
-The script:
+### What the script does
 
-reads atomic numbers, coordinates, DFT energies and DFT gradients from the SPICE HDF5 file;
-converts coordinates from Bohr to Ångström;
-converts energies from Hartree to eV;
-converts gradients into atomic forces in eV/Å;
-detects structures containing Cl, Br or I;
-exports the processed configurations in .extxyz format.
-Output files
+The script performs the following operations:
+
+1. Reads atomic numbers, molecular conformations, DFT total energies and DFT total gradients from the SPICE HDF5 file.
+2. Converts coordinates from Bohr to Ångström.
+3. Converts energies from Hartree to electronvolts.
+4. Converts gradients to atomic forces in eV/Å.
+5. Identifies configurations containing `Cl`, `Br` or `I`.
+6. Writes the processed data into separate `.extxyz` files.
+
+### Output files
+
+```text
 01_spice_subsets/subset_halogens.extxyz
 01_spice_subsets/subset_general.extxyz
+```
 
-Conceptually, this stage is:
+The first file contains configurations involving the halogens of greatest interest in this project. The second file provides the broader chemical background needed to avoid training a model that is narrowly restricted to a single type of interaction.
 
-Public DFT Data → Preprocessing → Chemically Organised ML Training Data
+The purpose of this step can be summarised as:
 
-These data provide the general quantum-mechanical foundation on which the more targeted halogen-bond information is later added.
+```text
+Public DFT Data
+        ↓
+Unit Conversion and Chemical Filtering
+        ↓
+Halogen-Containing and General Molecular Subsets
+        ↓
+MLFF Training Data Foundation
+```
 
-Step 2 — Generating Targeted σ-Hole Geometries
-Purpose
+---
 
-A broad public dataset is useful, but it does not guarantee dense coverage of the precise geometrical arrangements associated with directional halogen bonding. For that reason, I generated an additional collection of simple model complexes designed specifically to sample σ-hole interactions.
+## Step 2 — Generating Targeted σ-Hole and Halogen-Bond Geometries
 
-The donor molecules are methyl halides:
+### Purpose
 
+Although public DFT datasets provide broad chemical diversity, they do not necessarily sample directional halogen-bond geometries with the density required for a specialised model.
+
+For this reason, I generated an additional collection of simple model complexes designed specifically to explore the geometry of the σ-hole interaction.
+
+### Model systems
+
+The halogen-bond donor molecules are methyl halides:
+
+```text
 CH3–Cl
 CH3–Br
 CH3–I
+```
 
 Each donor is paired with a representative Lewis base:
 
+```text
 NH3   → nitrogen-based acceptor model
 H2O   → oxygen-based acceptor model
 PH3   → phosphorus-based acceptor model
+```
 
-These are intentionally simple model systems. Their role is not to reproduce a whole drug or a membrane, but to isolate the geometric features of a halogen bond in a controlled way.
+These systems are intentionally simple. They are not intended to represent an entire drug molecule or a complete lipid membrane. Their purpose is to isolate the directional interaction between a carbon-bound halogen and an electron-rich acceptor atom.
 
-Script
+### Script
+
+Run from the project root directory:
+
+```bash
 python 02_sigma_hole_geoms/step2_generate_scans.py
-Scan design
+```
 
-The script varies both distance and angle:
+### Scan design
 
+The script systematically varies both intermolecular distance and interaction angle:
+
+```text
 Halogens:      Cl, Br, I
 Lewis bases:   N, O, P
-Distance:      2.50–4.50 Å in 0.25 Å increments
-Angle:         180°–120° in 1° increments
+Distance:      2.50–4.50 Å, in 0.25 Å increments
+Angle:         180°–120°, in 1° increments
+```
 
-The angular sampling is particularly important because halogen bonding is directional. Configurations close to 180° correspond to an acceptor approaching along the extension of the C–X bond, which is the direction associated with the σ-hole. Bent geometries provide contrasting configurations and help the future model distinguish a directional interaction from a generic contact.
+The angular scan is particularly important. Halogen bonding is associated with a directional region of positive electrostatic potential along the extension of the covalent C–X bond. Near-linear geometries therefore represent the preferred σ-hole approach direction, while more bent geometries provide contrasting examples.
 
-The total number of generated structures is:
+The total number of generated geometries is:
 
+```text
 3 halogens × 3 Lewis bases × 9 distances × 61 angles = 4,941 geometries
-Output file
+```
+
+### Output file
+
+```text
 02_sigma_hole_geoms/sigma_hole_input.xyz
+```
 
-At this point, only coordinates and scan metadata are generated. Energies and forces are obtained in the next step by running DFT calculations with ORCA.
+At this stage, the output contains molecular coordinates and scan metadata only. New quantum-mechanical energies and atomic forces are calculated in the next step.
 
-Conceptually:
+This stage can be summarised as:
 
-Directional Halogen-Bond Question
+```text
+Scientific question:
+How can directional halogen bonding be represented in the training data?
+
         ↓
-CH3–X···Lewis Base Model Systems
-        ↓
-Distance and Angular Scans
-        ↓
-Targeted σ-Hole Geometry Library
-Step 3 — Calculating DFT Reference Energies and Forces with ORCA
-Purpose
 
-The targeted geometries created in Step 2 are converted into useful ML training data by evaluating them at the quantum-mechanical level.
+Construction of CH3–X···Lewis Base model complexes
 
-Script
+        ↓
+
+Systematic distance and angular sampling
+
+        ↓
+
+Targeted σ-hole geometry library
+```
+
+---
+
+## Step 3 — Calculating DFT Reference Energies and Forces with ORCA
+
+### Purpose
+
+The structures generated in Step 2 become useful for MLFF training only after assigning quantum-mechanical reference energies and atomic forces.
+
+This is the role of the ORCA stage.
+
+### Script
+
+Run from the project root directory:
+
+```bash
 python 03_orca_references/step3_run_orca.py
+```
 
-A resume-capable version of the workflow is also available for interrupted calculations:
+A resume-capable version is also available for interrupted calculations:
 
-python step3_resume_orca.py
-What the script does
+```bash
+python 03_orca_references/step3_resume_orca.py
+```
+
+### What the script does
 
 The script reads:
 
+```text
 02_sigma_hole_geoms/sigma_hole_input.xyz
+```
 
-and performs a separate ORCA calculation for each generated geometry using:
+and performs an independent ORCA calculation for each generated σ-hole geometry.
 
+The calculations use:
+
+```text
 wB97X-D4 def2-TZVP TightSCF
+```
 
-with four CPU processes per calculation and an increased SCF iteration limit:
+with the following ORCA settings:
 
+```text
 %pal nprocs 4 end
 %scf MaxIter 300 end
+```
 
-For every σ-hole geometry, the calculation provides:
+For each geometry, the workflow calculates:
 
-a DFT reference energy;
-atomic forces derived from the quantum-mechanical calculation.
-Output file
+- a DFT reference energy;
+- the corresponding atomic forces.
+
+### Output file
+
+```text
 03_orca_references/train_sigma_hole_orca.extxyz
+```
 
-This is the custom reference dataset generated specifically for the interaction of interest. Whereas the SPICE-derived data provide broad chemical coverage, the ORCA-derived structures provide dense sampling of halogen-bond geometries.
+This file is the custom reference dataset produced specifically for halogen-bond geometry sampling.
 
-Conceptually:
+The two main sources of molecular information are therefore complementary:
 
-Targeted σ-Hole Geometries
+```text
+SPICE-derived data:
+Broad chemical coverage
+
+ORCA-derived σ-hole data:
+Dense sampling of the directional interaction of interest
+```
+
+The ORCA stage can be summarised as:
+
+```text
+Targeted σ-hole geometries
         ↓
-ORCA DFT Calculations
+DFT calculations with ORCA
         ↓
-Reference Energies and Forces
+Reference energies and atomic forces
         ↓
-Specialised Halogen-Bond Training Data
-Step 4 — Calculating Isolated Atom Reference Energies
-Purpose
+Specialised halogen-bond training data
+```
 
-MACE training benefits from consistent atomic reference energies for the elements present in the dataset. These isolated atom calculations provide the energetic baseline used during the training process.
+---
 
-Script
+## Step 4 — Calculating Isolated Atom Reference Energies
+
+### Purpose
+
+MACE training requires a consistent energetic treatment of the chemical elements represented in the dataset. Isolated atom calculations provide atomic reference energies that can be used as energetic baselines during model training.
+
+### Script
+
+Run from the project root directory:
+
+```bash
 python step4_isolated_atoms.py
-Initial elements
+```
+
+### Initial atomic references
 
 The initial isolated atom calculations include:
 
+```text
 H, C, N, O, P, Cl, Br, I
+```
 
-Additional elements required by the combined training dataset were subsequently included:
+Additional atomic references were subsequently added for elements appearing in the combined public dataset:
 
+```text
 B, F, Si, S
+```
 
-Therefore, the full element coverage of the final training workflow is:
+The final element coverage is therefore:
 
+```text
 H, B, C, N, O, F, Si, P, S, Cl, Br, I
-Quantum-mechanical level
+```
 
-The isolated atom reference calculations were performed using:
+### Quantum-mechanical level
 
+The isolated atom calculations use:
+
+```text
 UKS wB97X-D4 def2-TZVP TightSCF
-Output file
+```
+
+### Output file
+
+```text
 04_isolated_atoms/isolated_atoms.extxyz
+```
 
-The role of these references can be represented conceptually as:
+Conceptually, the atomic references allow the model to handle the total energy as:
 
-E
-total
-	​
+```text
+Total energy ≈ sum of atomic reference energies
+               + environment-dependent learned energy
+```
 
-≈
-i
-∑
-	​
+or, more compactly:
 
-E
-i
-reference
-	​
+```text
+E_total ≈ Σ E_atomic_reference + E_learned(environment)
+```
 
-+E
-environment
-	​
+The isolated atom configurations are assigned zero forces, since a single isolated atom has no internal geometric degrees of freedom to optimise.
 
-(R)
+---
 
-where the model learns the environment-dependent part of the energy while using consistent atomic reference contributions.
+## Step 5 — Dataset Assembly and Label Normalisation
 
-Step 5 — Assembling and Normalising the Final Training Dataset
-Purpose
+### Purpose
 
-The final dataset combines general molecular information with enhanced sampling of the chemistry that matters most for this project.
+The final training data must combine general chemistry, halogen-containing public configurations, targeted ORCA reference structures and atomic energy baselines in a consistent format.
 
-The dataset is assembled from four sources:
+The four data sources are:
 
-SPICE general configurations
-SPICE halogen-containing configurations
-ORCA σ-hole / halogen-bond configurations
-Isolated atom reference configurations
-Initial dataset assembly
+```text
+1. SPICE general molecular configurations
+2. SPICE halogen-containing configurations
+3. ORCA σ-hole / halogen-bond reference configurations
+4. Isolated atom reference configurations
+```
+
+---
+
+### Initial assembly script
+
+```bash
 python step5_merge_datasets.py
+```
 
-This script combines the different data sources and separates them into training and validation sets.
+This script combines the different components and separates them into training and validation subsets.
 
-A central design choice is the increased representation of the ORCA-generated σ-hole structures in the training data:
+A central design choice is the increased representation of the ORCA-generated σ-hole data in the training set:
 
+```python
 orca_tr_weighted = orca_tr * 10
+```
 
-This tenfold oversampling increases the exposure of the model to directional halogen-bond geometries during training. The aim is not to replace general molecular chemistry, but to ensure that the model pays sufficient attention to the interaction that motivated the project.
+This tenfold oversampling does not mean that the model is trained only on halogen bonding. Instead, it increases the frequency with which the model encounters the directional interaction that is central to this project, while retaining the broader chemical information derived from SPICE.
 
-The initial assembled datasets are:
+The initial output files are:
 
+```text
 05_final_datasets/train_pilot_v1.extxyz
 05_final_datasets/val_pilot_v1.extxyz
-Dataset correction and label normalisation
+```
+
+---
+
+### Dataset repair and normalisation
+
+During development, the assembled datasets required normalisation of the energy and force labels used by the MACE training setup.
+
+This correction is performed with:
+
+```bash
 python fix_and_resume.py
+```
 
-This script performs corrections required for consistent MACE training. In particular, it standardises the reference labels:
+The script standardises the reference keys:
 
+```text
 energy  → REF_energy
 forces  → REF_forces
+```
 
 It also:
 
-removes inconsistent isolated atom entries;
-resets stored ASE calculators;
-includes missing isolated atom references;
-creates corrected training and validation files.
+- removes inconsistent isolated atom records from earlier dataset versions;
+- clears stored ASE calculator objects;
+- adds missing isolated atom references for `B`, `F`, `Si` and `S`;
+- generates corrected training and validation datasets.
 
-Output files:
+The corrected output files are:
 
+```text
 05_final_datasets/train_fixed.extxyz
 05_final_datasets/val_fixed.extxyz
-Final dataset preparation
+```
+
+---
+
+### Final dataset assembly
+
+The final, consolidated assembly script is:
+
+```bash
 python step5_ultimate_merge.py
+```
 
-This script generates the final MACE-ready datasets by combining the normalised reference data, including isolated atom baselines and the oversampled ORCA halogen-bond configurations.
+This script directly prepares the MACE-compatible datasets by:
 
-Final output files:
+- reading the ORCA σ-hole reference configurations;
+- reading the SPICE halogen and general subsets;
+- normalising energies and forces to `REF_energy` and `REF_forces`;
+- adding isolated atom references;
+- applying the intended ORCA σ-hole oversampling in the training set;
+- writing the final training and validation files.
 
+### Final output files
+
+```text
 05_final_datasets/train_perfect.extxyz
 05_final_datasets/val_perfect.extxyz
+```
 
-The final dataset design can be summarised as:
+These are the files used as the final training-data products of the workflow.
 
-General DFT Molecular Coverage
+The full dataset-construction strategy can be summarised as:
+
+```text
+General public DFT molecular data
         +
-Halogen-Containing Public DFT Configurations
+Halogen-containing public DFT configurations
         +
-Targeted ORCA σ-Hole Reference Data
+Purpose-built ORCA σ-hole reference calculations
         +
-Atomic Energy Baselines
+Isolated atom energy baselines
         ↓
-MACE-Ready Training and Validation Datasets
-MACE Training
+Normalised and chemically enriched MACE datasets
+```
 
-The final datasets were used to train a MACE machine learning interatomic potential.
+### Development note
 
-MACE learns an energy function from the quantum-mechanical reference configurations:
+`step5_merge_datasets.py` and `fix_and_resume.py` document the earlier assembly and correction route used during development. `step5_ultimate_merge.py` is the consolidated script intended for preparing the final `train_perfect.extxyz` and `val_perfect.extxyz` datasets from the source components.
 
-E=E(R)
+---
 
-and obtains atomic forces through differentiation:
+## Step 6 — Training the MLFF with MACE
 
-F
-i
-	​
+### Purpose
 
-=−∇
-i
-	​
+The final datasets are used to train a MACE machine learning interatomic potential.
 
-E(R)
+A force field must provide both molecular energies and forces. In this workflow, MACE learns an energy model from the quantum-mechanical reference data:
 
-This means that the trained model is intended to reproduce both the energies and the forces associated with the reference data, including the targeted halogen-bond geometries generated in this work.
+```text
+E = E(atomic coordinates)
+```
 
-Training environment
-MACE version:   0.3.15
-CUDA version:   12.1
-GPU device:     0
-Dataset sizes
+Atomic forces are obtained from the derivative of the learned energy:
+
+```text
+F_i = - dE / dR_i
+```
+
+where:
+
+```text
+E    = predicted molecular energy
+F_i  = predicted force on atom i
+R_i  = coordinates of atom i
+```
+
+In practical terms, the model is trained to reproduce the DFT-level energy and force information present in the assembled dataset.
+
+### Training environment
+
+The recorded training run used:
+
+```text
+MACE version:  0.3.15
+CUDA version:  12.1
+GPU device:    0
+```
+
+### Dataset size
+
+```text
 Training configurations:    134,460
 Validation configurations:   10,495
-Chemical elements represented
+```
+
+### Chemical elements represented during training
+
+```text
 H, B, C, N, O, F, Si, P, S, Cl, Br, I
+```
 
-The trained model was therefore exposed to both general molecular configurations and an enriched subset of geometries related to halogen bonding.
+The training set therefore contains broad molecular coverage together with increased exposure to purpose-built σ-hole configurations.
 
-Training Performance
+---
 
-The validation errors decreased substantially over the course of training. The model rapidly improved during the early epochs and subsequently stabilised in a lower-error region.
+## Training Performance
 
-Representative values observed in the later part of training were approximately:
+The validation curves show a marked reduction in both energy and force errors during the early part of training, followed by a lower-error region with fluctuations between epochs.
 
-Energy RMSE:   52–54 meV/atom
-Force RMSE:    52–60 meV/Å
+The best validation values recorded in the available training log were:
 
-The lowest energy validation error observed in the available training record was:
+```text
+Lowest recorded energy RMSE:
+52.05 meV/atom at epoch 69
 
-RMSE_E_per_atom = 52.05 meV/atom
+Lowest recorded force RMSE:
+51.86 meV/Å at epoch 71
+```
 
-at epoch 69.
+At the final recorded epoch shown in the log:
 
-The training curves are shown below:
+```text
+Epoch 74:
+Energy RMSE = 52.29 meV/atom
+Force RMSE  = 56.90 meV/Å
+```
 
-Figure 1. Validation error during MACE training. The upper panel shows the energy RMSE per atom, while the lower panel shows the force RMSE. Both metrics decrease markedly during the early training period and remain within a comparatively stable low-error region at later epochs.
+These values indicate that the model learned a stable representation of a substantial part of the training and validation reference data.
 
-These validation results indicate that the model has learned a substantial part of the energy and force patterns contained in the assembled dataset. However, this result should not be interpreted as full validation for lipid membrane simulations. Independent testing on unseen halogen-bond configurations and membrane-relevant molecular systems remains necessary.
+![MACE validation energy and force error curves](figures/mace_validation_energy_force_combined.png)
 
-Trained Model Files
+**Figure 1.** Validation errors during MACE training. The upper panel shows the root mean square error for energies per atom, and the lower panel shows the root mean square error for atomic forces. Both quantities decrease substantially during the initial training period and remain in a lower-error range at later epochs.
 
-The workflow produced the following model-related files:
+It is important to distinguish validation performance from final physical validation. The curves show that the model fits the assembled validation set reasonably well. They do not yet demonstrate that it accurately predicts membrane permeation, lipid interactions or every possible halogen-bond environment.
 
+---
+
+## Generated Model Files
+
+The workflow produced the following model-related artifacts:
+
+```text
 06_mace_training/halogen_membrane_best.pt
 06_mace_training/checkpoints/halogen_membrane_v1_run-123_epoch-71.pt
 07_md_simulation/mace_model.pt
 07_md_simulation/mace_model_deployed.pt
+```
 
-These .pt files are PyTorch/MACE model artifacts containing trained neural-network parameters for subsequent testing and deployment.
+These `.pt` files contain trained PyTorch/MACE model parameters intended for subsequent testing and deployment.
+
+---
+
+## Repository Structure
+
+```text
+.
+├── 01_spice_subsets/
+│   ├── step1_balanced_spice.py
+│   ├── subset_general.extxyz
+│   └── subset_halogens.extxyz
+│
+├── 02_sigma_hole_geoms/
+│   ├── step2_generate_scans.py
+│   └── sigma_hole_input.xyz
+│
+├── 03_orca_references/
+│   ├── step3_run_orca.py
+│   ├── step3_resume_orca.py
+│   └── train_sigma_hole_orca.extxyz
+│
+├── 04_isolated_atoms/
+│   └── isolated_atoms.extxyz
+│
+├── 05_final_datasets/
+│   ├── train_pilot_v1.extxyz
+│   ├── val_pilot_v1.extxyz
+│   ├── train_fixed.extxyz
+│   ├── val_fixed.extxyz
+│   ├── train_perfect.extxyz
+│   └── val_perfect.extxyz
+│
+├── 06_mace_training/
+│   ├── mace_train.log
+│   ├── halogen_membrane_best.pt
+│   └── checkpoints/
+│
+├── 07_md_simulation/
+│   ├── mace_model.pt
+│   └── mace_model_deployed.pt
+│
+├── figures/
+│   └── mace_validation_energy_force_combined.png
+│
+├── fix_and_resume.py
+├── step4_isolated_atoms.py
+├── step5_merge_datasets.py
+└── step5_ultimate_merge.py
+```
+
+---
+
+## Current Status
+
+At its present stage, the project has achieved the following:
+
+- preprocessing of publicly available DFT molecular data;
+- separation of halogen-containing and general molecular configurations;
+- generation of targeted σ-hole scan geometries;
+- ORCA calculations for halogen-bond reference energies and forces;
+- isolated atom reference calculations;
+- assembly of normalised MACE training and validation datasets;
+- GPU-accelerated training of a first MACE MLFF;
+- production of trained model files and validation-error curves.
+
+The current model is best described as:
+
+```text
+A quantum-data-driven, halogen-bond-enriched MLFF
+developed for future testing in membrane-oriented simulations.
+```
+
+---
+
+## Next Steps
+
+The most important next stage is independent validation.
+
+Planned validation tasks include:
+
+1. evaluating the model on new σ-hole geometries not present in the training dataset;
+2. comparing predicted energies and forces against additional ORCA calculations for halogenated drug-like molecules;
+3. examining whether the model remains stable during molecular dynamics tests;
+4. testing the model in more realistic membrane-oriented systems;
+5. determining whether targeted halogen-bond enrichment improves the treatment of ligand interactions in lipid environments.
+
+---
+
+## Methodological Note
+
+The custom σ-hole reference calculations were generated with ORCA using:
+
+```text
+wB97X-D4 def2-TZVP TightSCF
+```
+
+The publicly available SPICE structures originate from an external quantum-chemical dataset. Because public reference data and newly generated ORCA calculations may not necessarily be based on identical quantum-chemical settings, their compatibility should be examined carefully before presenting the merged model as a quantitatively validated production potential.
+
+For this reason, the present repository should be viewed as a documented model-development workflow and a foundation for further validation, rather than as a completed membrane force field.
+
+---
+
+## Citation and Data Availability
+
+The SPICE dataset used in this workflow is publicly available and should be cited according to its original publication and distribution terms.
+
+ORCA is used for the additional quantum-chemical calculations and should be cited according to the official ORCA citation guidelines.
+
+MACE is used as the machine learning interatomic potential framework and should be cited according to the original MACE publications.
+
+Large raw datasets, ORCA output files and trained model artifacts may be omitted from the repository if file-size or licensing constraints apply. The repository is intended primarily to document the scripts, workflow and validation outputs required to reproduce the model-development process.
