@@ -1,0 +1,24 @@
+1
+Properties=species:S:1:pos:R:3:forces:R:3 energy=-13.742543154185368 config_type=IsolatedAtom pbc="F F F"
+H        0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000
+1
+Properties=species:S:1:pos:R:3:forces:R:3 energy=-1030.5716752317483 config_type=IsolatedAtom pbc="F F F"
+C        0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000
+1
+Properties=species:S:1:pos:R:3:forces:R:3 energy=-1486.2021320849994 config_type=IsolatedAtom pbc="F F F"
+N        0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000
+1
+Properties=species:S:1:pos:R:3:forces:R:3 energy=-2043.6718669520444 config_type=IsolatedAtom pbc="F F F"
+O        0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000
+1
+Properties=species:S:1:pos:R:3:forces:R:3 energy=-9286.307489072662 config_type=IsolatedAtom pbc="F F F"
+P        0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000
+1
+Properties=species:S:1:pos:R:3:forces:R:3 energy=-12521.382122978805 config_type=IsolatedAtom pbc="F F F"
+Cl       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000
+1
+Properties=species:S:1:pos:R:3:forces:R:3 energy=-70042.71687912007 config_type=IsolatedAtom pbc="F F F"
+Br       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000
+1
+Properties=species:S:1:pos:R:3:forces:R:3 energy=-8102.6068068564 config_type=IsolatedAtom pbc="F F F"
+I        0.00000000       0.00000000       0.00000000       0.00000000       0.00000000       0.00000000
