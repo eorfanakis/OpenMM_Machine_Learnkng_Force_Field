@@ -108,7 +108,6 @@ The first step establishes the broad chemical foundation of the MLFF using exist
 
 The source file is:
 
-```text
 SPICE-2.0.1.hdf5
 ```
 
