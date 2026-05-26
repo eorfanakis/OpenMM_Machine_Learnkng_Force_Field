@@ -657,6 +657,19 @@ These `.pt` files contain trained PyTorch/MACE model parameters intended for sub
 ├── step4_isolated_atoms.py
 ├── step5_merge_datasets.py
 └── step5_ultimate_merge.py
+
+## Data Availability and Large Files
+
+This repository is intended to document the workflow, scripts and representative validation outputs used in the development of the MLFF. Some files generated or used during the project are not included in the repository because they exceed practical file-size limits for standard GitHub hosting.
+
+The omitted large files may include:
+
+```text
+SPICE-2.0.1.hdf5
+Processed SPICE-derived .extxyz subsets
+ORCA-generated reference datasets and raw output files
+Final training and validation datasets
+Large MACE checkpoints and deployed model files
 ```
 
 ---
