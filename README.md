@@ -184,9 +184,6 @@ These systems are intentionally simple. They are not intended to represent an en
 
 ### Script
 
-Run from the project root directory:
-
-```bash
 python 02_sigma_hole_geoms/step2_generate_scans.py
 ```
 
@@ -248,9 +245,6 @@ This is the role of the ORCA stage.
 
 ### Script
 
-Run from the project root directory:
-
-```bash
 python 03_orca_references/step3_run_orca.py
 ```
 
@@ -328,9 +322,6 @@ MACE training requires a consistent energetic treatment of the chemical elements
 
 ### Script
 
-Run from the project root directory:
-
-```bash
 python step4_isolated_atoms.py
 ```
 
