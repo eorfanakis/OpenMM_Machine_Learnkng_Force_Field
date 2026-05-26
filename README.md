@@ -51,3 +51,28 @@ Conceptually, this first step can be summarized as:
 
 ```text
 Public DFT Data → Preprocessing and Chemical Filtering → ML Training Dataset
+
+Although public DFT datasets provide broad chemical coverage, they do not necessarily sample the specific geometrical arrangements needed to describe directional halogen bonding in sufficient detail. For this reason, the second stage of the workflow creates an additional, targeted set of molecular geometries focused explicitly on the σ-hole interaction.
+
+The basic idea is to generate simple model complexes in which a halogen-bond donor interacts with a representative Lewis base. The donor systems are methyl halides:
+
+CH3–Cl
+CH3–Br
+CH3–I
+
+These molecules represent carbon-bound halogens of increasing size and polarizability. Each donor is paired with a small Lewis-base probe containing nitrogen, oxygen or phosphorus:
+
+NH3   → nitrogen-based Lewis base
+H2O   → oxygen-based Lewis base
+PH3   → phosphorus-based Lewis base
+
+These model complexes are not intended to reproduce an entire membrane or a complete drug molecule. Instead, they are deliberately simple systems designed to isolate and sample the physical interaction of interest: the directional attraction between a covalently bound halogen and an electron-rich acceptor.
+
+The generated geometries scan two variables:
+
+Halogens:      Cl, Br, I
+Lewis bases:   N, O, P
+Distance:      2.50–4.50 Å, in 0.25 Å increments
+Angle:         180°–120°, in 1° increments
+
+The angular scan is especially important. A strong halogen bond is generally associated with a near-linear arrangement along the extension of the covalent C–X bond, where the σ-hole is located. Sampling geometries close to 180° captures this preferred directionality, whereas progressively bent arrangements provide contrasting examples that help the model distinguish a directional halogen bond from a simple non-specific contact.
