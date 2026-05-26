@@ -663,7 +663,6 @@ This repository is intended to document the workflow, scripts and representative
 
 The omitted large files may include:
 
-```text
 SPICE-2.0.1.hdf5
 Processed SPICE-derived .extxyz subsets
 ORCA-generated reference datasets and raw output files
@@ -720,15 +719,3 @@ wB97X-D4 def2-TZVP TightSCF
 The publicly available SPICE structures originate from an external quantum-chemical dataset. Because public reference data and newly generated ORCA calculations may not necessarily be based on identical quantum-chemical settings, their compatibility should be examined carefully before presenting the merged model as a quantitatively validated production potential.
 
 For this reason, the present repository should be viewed as a documented model-development workflow and a foundation for further validation, rather than as a completed membrane force field.
-
----
-
-## Citation and Data Availability
-
-The SPICE dataset used in this workflow is publicly available and should be cited according to its original publication and distribution terms.
-
-ORCA is used for the additional quantum-chemical calculations and should be cited according to the official ORCA citation guidelines.
-
-MACE is used as the machine learning interatomic potential framework and should be cited according to the original MACE publications.
-
-Large raw datasets, ORCA output files and trained model artifacts may be omitted from the repository if file-size or licensing constraints apply. The repository is intended primarily to document the scripts, workflow and validation outputs required to reproduce the model-development process.
