@@ -1,4 +1,4 @@
-# Development of a Membrane-Oriented MLFF for Halogen Bonding using SPICE, ORCA and MACE
+# Development of a Membrane-Oriented Machine Learning Force Field for Halogen Bonding using SPICE, ORCA and MACE
 
 ## Overview
 
